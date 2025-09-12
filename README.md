@@ -1,0 +1,1 @@
+# QLPK_NguyenNgocTuVy_1150070050_GK
