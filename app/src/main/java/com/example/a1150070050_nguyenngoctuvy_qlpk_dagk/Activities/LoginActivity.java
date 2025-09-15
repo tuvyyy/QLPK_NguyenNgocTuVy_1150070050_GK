@@ -2,12 +2,14 @@ package com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.MainActivity;
 import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.R;
 
 public class LoginActivity extends AppCompatActivity {
@@ -25,11 +27,21 @@ public class LoginActivity extends AppCompatActivity {
 
         // Click nút đăng nhập
         btnLogin.setOnClickListener(v -> {
-            String user = etUsername.getText().toString();
-            String pass = etPassword.getText().toString();
+            String user = etUsername.getText().toString().trim();
+            String pass = etPassword.getText().toString().trim();
+
+            if (TextUtils.isEmpty(user)) {
+                etUsername.setError("Vui lòng nhập tên đăng nhập!");
+                return;
+            }
+            if (TextUtils.isEmpty(pass)) {
+                etPassword.setError("Vui lòng nhập mật khẩu!");
+                return;
+            }
 
             if (user.equals("admin") && pass.equals("123")) {
-                Intent intent = new Intent(LoginActivity.this, com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.MainActivity.class);
+                // Đăng nhập thành công → sang MainActivity
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
                 finish();
             } else {

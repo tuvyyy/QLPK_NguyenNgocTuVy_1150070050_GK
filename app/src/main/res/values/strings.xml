@@ -1,3 +1,6 @@
 <resources>
+    <!-- Tên chính của app -->
     <string name="app_name">1150070050_NguyenNgocTuVy_QLPK_DAGK</string>
+    <string name="navigation_drawer_open">Mở menu</string>
+    <string name="navigation_drawer_close">Đóng menu</string>
 </resources>
