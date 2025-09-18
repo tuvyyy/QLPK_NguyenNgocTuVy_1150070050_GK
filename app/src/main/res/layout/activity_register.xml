@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/clinic_background"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:background="@android:color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
         android:orientation="vertical"
         android:padding="24dp">
 
-        <!-- Tiêu đề -->
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
@@ -21,133 +18,68 @@
             android:text="Đăng Ký Tài Khoản"
             android:textSize="26sp"
             android:textStyle="bold"
-            android:textColor="@color/clinic_text_primary"
-            android:fontFamily="sans-serif-medium"
+            android:textColor="#222222"
             android:layout_marginBottom="6dp" />
 
-        <!-- Mô tả -->
         <TextView
             android:id="@+id/tvSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Tạo tài khoản để quản lý phòng khám"
             android:textSize="15sp"
-            android:textColor="@color/clinic_text_secondary"
-            android:fontFamily="sans-serif"
+            android:textColor="#666666"
             android:layout_marginBottom="20dp" />
 
-        <!-- Username -->
-        <com.google.android.material.textfield.TextInputLayout
+        <EditText
+            android:id="@+id/etUsername"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="14dp"
-            app:boxBackgroundColor="@android:color/white"
-            app:boxStrokeColor="@color/clinic_primary">
+            android:hint="Tên đăng nhập"
+            android:inputType="textPersonName"
+            android:padding="12dp"
+            android:layout_marginBottom="14dp" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etUsername"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Tên đăng nhập"
-                android:inputType="textPersonName"
-                android:padding="12dp"
-                android:background="@null" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Email -->
-        <com.google.android.material.textfield.TextInputLayout
+        <EditText
+            android:id="@+id/etEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="14dp"
-            app:boxBackgroundColor="@android:color/white"
-            app:boxStrokeColor="@color/clinic_primary">
+            android:hint="Email"
+            android:inputType="textEmailAddress"
+            android:padding="12dp"
+            android:layout_marginBottom="14dp" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etEmail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Email"
-                android:inputType="textEmailAddress"
-                android:padding="12dp"
-                android:background="@null" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Password -->
-        <com.google.android.material.textfield.TextInputLayout
+        <EditText
+            android:id="@+id/etPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="14dp"
-            app:boxBackgroundColor="@android:color/white"
-            app:boxStrokeColor="@color/clinic_primary">
+            android:hint="Mật khẩu"
+            android:inputType="textPassword"
+            android:padding="12dp"
+            android:layout_marginBottom="14dp" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etPassword"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Mật khẩu"
-                android:inputType="textPassword"
-                android:padding="12dp"
-                android:background="@null" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Confirm Password -->
-        <com.google.android.material.textfield.TextInputLayout
+        <EditText
+            android:id="@+id/etConfirmPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="22dp"
-            app:boxBackgroundColor="@android:color/white"
-            app:boxStrokeColor="@color/clinic_primary">
+            android:hint="Xác nhận mật khẩu"
+            android:inputType="textPassword"
+            android:padding="12dp"
+            android:layout_marginBottom="22dp" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etConfirmPassword"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Xác nhận mật khẩu"
-                android:inputType="textPassword"
-                android:padding="12dp"
-                android:background="@null" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Nút đăng ký -->
         <Button
             android:id="@+id/btnRegister"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Đăng ký"
-            android:textSize="16sp"
-            android:fontFamily="sans-serif-medium"
-            android:backgroundTint="@color/clinic_primary"
-            android:textColor="@android:color/white"
             android:padding="14dp"
-            android:elevation="4dp"
             android:layout_marginBottom="18dp" />
 
-        <!-- Link quay lại đăng nhập -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvLogin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_gravity="center">
-
-            <TextView
-                android:id="@+id/tvLoginPrompt"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Đã có tài khoản?"
-                android:textColor="@color/clinic_text_secondary"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/tvLogin"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=" Đăng nhập ngay"
-                android:textColor="@color/clinic_accent"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:clickable="true"
-                android:focusable="true" />
-        </LinearLayout>
-
+            android:text="Đăng nhập ngay"
+            android:textColor="#2962FF"
+            android:textStyle="bold" />
     </LinearLayout>
 </ScrollView>

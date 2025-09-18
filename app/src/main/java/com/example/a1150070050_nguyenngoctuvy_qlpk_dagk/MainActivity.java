@@ -1,5 +1,6 @@
 package com.example.a1150070050_nguyenngoctuvy_qlpk_dagk;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 
@@ -11,6 +12,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.Activities.LoginActivity;
 import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.Fragments.AppointmentsFragment;
 import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.Fragments.DoctorsFragment;
 import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.Fragments.HomeFragment;
@@ -36,7 +38,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar,
                 R.string.navigation_drawer_open,
@@ -44,7 +45,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         );
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
-
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
@@ -60,7 +60,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
                             drawerLayout.closeDrawer(GravityCompat.START);
                         } else {
-
                             if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
                                 getSupportFragmentManager().popBackStack();
                             } else {
@@ -94,6 +93,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.container, new ProfileFragment()).commit();
         } else if (id == R.id.nav_logout) {
+            // Chuyển về màn hình đăng nhập
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
             finish();
         }
 

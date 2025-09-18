@@ -30,8 +30,9 @@ public class LoginActivity extends AppCompatActivity {
     private EditText etUsername, etPassword;
     private OkHttpClient client;
 
-    // Đổi IP theo máy bạn (IP LAN, không dùng localhost)
-    private final String BASE_URL = "http://192.168.0.207:5179/api/Users/login";
+    // 👉 đổi sang ngrok URL của bạn
+// Trước đây: private final String BASE_URL = "https://7518e89f7d04.ngrok-free.app/api/Users";
+    private final String BASE_URL = "https://7518e89f7d04.ngrok-free.app/api/Users/login";
     private final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     @Override
@@ -47,7 +48,7 @@ public class LoginActivity extends AppCompatActivity {
 
         client = new OkHttpClient();
 
-        // Đăng nhập
+        // Xử lý đăng nhập
         btnLogin.setOnClickListener(v -> {
             String user = etUsername.getText().toString().trim();
             String pass = etPassword.getText().toString().trim();
@@ -64,13 +65,13 @@ public class LoginActivity extends AppCompatActivity {
             checkLogin(user, pass);
         });
 
-        // Đăng ký
+        // Chuyển sang Đăng ký
         tvRegister.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(intent);
         });
 
-        // Quên mật khẩu
+        // Chuyển sang Quên mật khẩu
         tvForgotPassword.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
             startActivity(intent);
@@ -79,10 +80,10 @@ public class LoginActivity extends AppCompatActivity {
 
     private void checkLogin(String username, String password) {
         try {
-            // JSON body
+            // ✅ JSON body đúng với LoginDto bên backend
             JSONObject json = new JSONObject();
             json.put("username", username);
-            json.put("password", password);
+            json.put("password", password);   // Đúng với LoginDto
 
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
@@ -95,7 +96,7 @@ public class LoginActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(Call call, IOException e) {
                     runOnUiThread(() ->
-                            Toast.makeText(LoginActivity.this, "Lỗi nữa má nội!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(LoginActivity.this, "Không thể kết nối server!", Toast.LENGTH_SHORT).show()
                     );
                 }
 
@@ -112,13 +113,19 @@ public class LoginActivity extends AppCompatActivity {
 
                     try {
                         JSONObject obj = new JSONObject(respBody);
+
+                        int id = obj.optInt("id", -1);
+                        String username = obj.optString("username", "");
                         String role = obj.optString("role", "user");
                         String email = obj.optString("email", "");
 
                         runOnUiThread(() -> {
                             Toast.makeText(LoginActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
 
+                            // 👉 Chuyển sang MainActivity và truyền thông tin user
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            intent.putExtra("id", id);
+                            intent.putExtra("username", username);
                             intent.putExtra("role", role);
                             intent.putExtra("email", email);
                             startActivity(intent);
@@ -138,4 +145,5 @@ public class LoginActivity extends AppCompatActivity {
             Toast.makeText(this, "Lỗi JSON!", Toast.LENGTH_SHORT).show();
         }
     }
+
 }
