@@ -32,7 +32,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private OkHttpClient client;
     // Đổi link này mỗi lần ngrok restart
-    private final String BASE_URL = "https://7518e89f7d04.ngrok-free.app/api/Users/register";
+    private final String BASE_URL = "https://4f438d1f500c.ngrok-free.app/api/Users/register";
     private final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     @Override
