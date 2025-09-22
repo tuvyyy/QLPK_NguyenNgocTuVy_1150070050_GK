@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:padding="16dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Tiêu đề -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
@@ -12,62 +12,49 @@
         android:text="Quản lý bác sĩ"
         android:textSize="22sp"
         android:textStyle="bold"
-        android:layout_gravity="center"/>
+        android:layout_gravity="center"
+        android:paddingBottom="8dp"/>
 
-    <EditText
-        android:id="@+id/etDoctorId"
-        android:hint="ID (dùng cho Update/Delete)"
-        android:inputType="number"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
+    <!-- Nhập thông tin thêm mới -->
     <EditText
         android:id="@+id/etDoctorName"
-        android:hint="Tên bác sĩ"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_edittext"
+        android:hint="Tên bác sĩ"
+        android:minHeight="48dp" />
 
     <EditText
         android:id="@+id/etDoctorSpecialty"
-        android:hint="Chuyên khoa"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_edittext"
+        android:hint="Chuyên khoa"
+        android:minHeight="48dp" />
 
     <EditText
         android:id="@+id/etDoctorPhone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_edittext"
         android:hint="Số điện thoại"
         android:inputType="phone"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:minHeight="48dp" />
 
+    <!-- Chỉ còn nút Thêm -->
     <Button
         android:id="@+id/btnAddDoctor"
-        android:text="Thêm bác sĩ"
+        android:text="➕ Thêm bác sĩ"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="8dp"/>
 
-    <Button
-        android:id="@+id/btnUpdateDoctor"
-        android:text="Cập nhật bác sĩ"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <Button
-        android:id="@+id/btnDeleteDoctor"
-        android:text="Xóa bác sĩ"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
-    <Button
-        android:id="@+id/btnGetDoctors"
-        android:text="Xem danh sách bác sĩ"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
+    <!-- Danh sách hiển thị luôn -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvDoctors"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:paddingTop="8dp"/>
+        android:paddingTop="12dp"/>
 </LinearLayout>

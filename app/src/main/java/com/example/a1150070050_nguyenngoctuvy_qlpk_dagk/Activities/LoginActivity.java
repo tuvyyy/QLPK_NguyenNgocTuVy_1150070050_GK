@@ -30,9 +30,7 @@ public class LoginActivity extends AppCompatActivity {
     private EditText etUsername, etPassword;
     private OkHttpClient client;
 
-    // 👉 đổi sang ngrok URL của bạn
-// Trước đây: private final String BASE_URL = "https://7518e89f7d04.ngrok-free.app/api/Users";
-    private final String BASE_URL = "https://4f438d1f500c.ngrok-free.app/api/Users/login";
+    private final String BASE_URL = "http://192.168.1.4:5179/api/Users/login";
     private final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     @Override

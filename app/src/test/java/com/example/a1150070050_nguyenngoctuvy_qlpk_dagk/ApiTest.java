@@ -67,7 +67,7 @@ public class ApiTest {
 
     @Test
     public void testDeleteUser() throws IOException {
-        int id = 2; // đổi id nếu cần
+        int id = 2;
         Request request = new Request.Builder()
                 .url(BASE_URL + "/" + id)
                 .delete()
