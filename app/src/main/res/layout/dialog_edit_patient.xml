@@ -1,41 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:padding="20dp"
+    android:padding="16dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
     <EditText
         android:id="@+id/etEditName"
+        android:hint="Họ tên"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Tên bệnh nhân"
-        android:minHeight="48dp" />
+        android:layout_height="48dp"
+        android:background="@android:drawable/editbox_background"
+        android:padding="8dp"/>
 
     <EditText
         android:id="@+id/etEditDob"
+        android:hint="yyyy-MM-dd"
+        android:focusable="false"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Ngày sinh"
-        android:minHeight="48dp" />
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:drawable/editbox_background"
+        android:padding="8dp"/>
 
-    <EditText
-        android:id="@+id/etEditGender"
+    <!-- Spinner giới tính (VN) -->
+    <Spinner
+        android:id="@+id/spEditGender"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Giới tính"
-        android:minHeight="48dp" />
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"/>
 
     <EditText
         android:id="@+id/etEditPhone"
+        android:hint="SĐT"
+        android:inputType="phone"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Số điện thoại"
-        android:minHeight="48dp" />
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:drawable/editbox_background"
+        android:padding="8dp"/>
 
     <EditText
         android:id="@+id/etEditAddress"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:hint="Địa chỉ"
-        android:minHeight="48dp" />
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:drawable/editbox_background"
+        android:padding="8dp"/>
 </LinearLayout>

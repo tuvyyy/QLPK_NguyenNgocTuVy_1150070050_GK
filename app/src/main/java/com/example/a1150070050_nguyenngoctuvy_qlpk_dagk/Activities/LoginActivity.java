@@ -30,12 +30,13 @@ public class LoginActivity extends AppCompatActivity {
     private EditText etUsername, etPassword;
     private OkHttpClient client;
 
-    private final String BASE_URL = "http://192.168.1.4:5179/api/Users/login";
+    private final String BASE_URL = "http://172.20.10.3:5179/api/Users/login";
     private final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_login);
 
         etUsername = findViewById(R.id.etUsername);

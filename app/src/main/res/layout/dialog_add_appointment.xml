@@ -1,0 +1,53 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="16dp">
+
+        <AutoCompleteTextView
+            android:id="@+id/ddPatient"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Chọn bệnh nhân"
+            android:focusable="true"
+            android:cursorVisible="false"
+            android:inputType="none" />
+
+        <AutoCompleteTextView
+            android:id="@+id/ddDoctor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Chọn bác sĩ"
+            android:layout_marginTop="8dp"
+            android:focusable="true"
+            android:cursorVisible="false"
+            android:inputType="none" />
+
+        <AutoCompleteTextView
+            android:id="@+id/ddService"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Chọn dịch vụ"
+            android:layout_marginTop="8dp"
+            android:focusable="true"
+            android:cursorVisible="false"
+            android:inputType="none" />
+
+        <EditText
+            android:id="@+id/etDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="false"
+            android:hint="Ngày (yyyy-MM-dd)"
+            android:layout_marginTop="8dp"/>
+
+        <EditText
+            android:id="@+id/etTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="false"
+            android:hint="Giờ (HH:mm)"
+            android:layout_marginTop="8dp"/>
+    </LinearLayout>
+</ScrollView>

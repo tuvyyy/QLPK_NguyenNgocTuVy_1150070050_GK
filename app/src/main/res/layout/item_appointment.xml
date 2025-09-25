@@ -1,0 +1,81 @@
+<!-- res/layout/item_appointment.xml -->
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardUseCompatPadding="true"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tvApptTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2025-09-25 09:00:00"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvApptDoctor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="BS: ..." />
+
+        <TextView
+            android:id="@+id/tvApptPatient"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="BN: ..." />
+
+        <TextView
+            android:id="@+id/tvApptService"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DV: ..." />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp">
+
+            <!-- Status chiếm hết không gian bên trái -->
+            <TextView
+                android:id="@+id/tvApptStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Scheduled"
+                android:textStyle="bold" />
+
+            <!-- Nút đổi trạng thái -->
+            <ImageButton
+                android:id="@+id/btnApptStatus"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Đổi trạng thái"
+                android:src="@android:drawable/ic_menu_manage"
+                tools:ignore="TouchTargetSizeCheck" />
+
+            <!-- Nút xoá -->
+            <ImageButton
+                android:id="@+id/btnApptDelete"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Xoá"
+                android:src="@android:drawable/ic_menu_delete"
+                tools:ignore="TouchTargetSizeCheck" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

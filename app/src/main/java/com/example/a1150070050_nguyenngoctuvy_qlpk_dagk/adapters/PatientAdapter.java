@@ -1,11 +1,9 @@
 package com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.adapters;
 
-import android.app.AlertDialog;
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -16,89 +14,81 @@ import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.model.Patient;
 
 import java.util.List;
 
-public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.ViewHolder> {
+public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.VH> {
 
-    private List<Patient> patients;
-    private OnPatientActionListener listener;
-    private Context context;
-
-    public interface OnPatientActionListener {
-        void onUpdatePatient(Patient patient);
-        void onDeletePatient(Patient patient);
+    public interface Listener {
+        void onEdit(Patient p);
+        void onDelete(Patient p);
     }
 
-    public PatientAdapter(Context context, List<Patient> patients, OnPatientActionListener listener) {
-        this.context = context;
-        this.patients = patients;
+    private final List<Patient> data;
+    private final Listener listener;
+
+    public PatientAdapter(List<Patient> data, Listener listener) {
+        this.data = data;
         this.listener = listener;
     }
 
-    @NonNull
-    @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
+    @NonNull @Override
+    public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_patient, parent, false);
-        return new ViewHolder(view);
+        return new VH(v);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Patient patient = patients.get(position);
+    public void onBindViewHolder(@NonNull VH h, int pos) {
+        Patient p = data.get(pos);
 
-        holder.tvName.setText(patient.getFullName());
-        holder.tvPhone.setText("📞 " + patient.getPhone());
-        holder.tvGender.setText("Giới tính: " + patient.getGender());
-        holder.tvDob.setText("Ngày sinh: " + patient.getDob());
-        holder.tvAddress.setText("🏠 " + patient.getAddress());
+        h.tvName.setText(p.getFullName() == null ? "" : p.getFullName());
 
-        // click để sửa
-        holder.itemView.setOnClickListener(v -> showEditDialog(patient));
+        // map M/F/O -> VN
+        String genderCode = p.getGender();
+        String genderDisplay = displayFromCode(genderCode);
+        h.tvGender.setText(genderDisplay);
+
+        h.tvPhone.setText(p.getPhone() == null ? "" : p.getPhone());
+        h.tvAddress.setText(p.getAddress() == null ? "" : p.getAddress());
+
+        String dob = p.getDob();
+        h.tvDob.setText(dob == null ? "" : dob);
+
+        h.btnEdit.setOnClickListener(v -> {
+            if (listener != null) listener.onEdit(p);
+        });
+        h.btnDelete.setOnClickListener(v -> {
+            if (listener != null) listener.onDelete(p);
+        });
     }
 
     @Override
     public int getItemCount() {
-        return patients.size();
+        return data.size();
     }
 
-    private void showEditDialog(Patient patient) {
-        View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_edit_patient, null);
-        EditText etName = dialogView.findViewById(R.id.etEditName);
-        EditText etDob = dialogView.findViewById(R.id.etEditDob);
-        EditText etGender = dialogView.findViewById(R.id.etEditGender);
-        EditText etPhone = dialogView.findViewById(R.id.etEditPhone);
-        EditText etAddress = dialogView.findViewById(R.id.etEditAddress);
-
-        etName.setText(patient.getFullName());
-        etDob.setText(patient.getDob());
-        etGender.setText(patient.getGender());
-        etPhone.setText(patient.getPhone());
-        etAddress.setText(patient.getAddress());
-
-        new AlertDialog.Builder(context)
-                .setTitle("Cập nhật bệnh nhân")
-                .setView(dialogView)
-                .setPositiveButton("Lưu", (dialog, which) -> {
-                    patient.setFullName(etName.getText().toString());
-                    patient.setDob(etDob.getText().toString());
-                    patient.setGender(etGender.getText().toString());
-                    patient.setPhone(etPhone.getText().toString());
-                    patient.setAddress(etAddress.getText().toString());
-                    listener.onUpdatePatient(patient);
-                })
-                .setNegativeButton("Xóa", (dialog, which) -> listener.onDeletePatient(patient))
-                .setNeutralButton("Hủy", null)
-                .show();
+    // ==== helpers ====
+    private static String displayFromCode(String code) {
+        if (code == null) return "—";
+        switch (code.toUpperCase()) {
+            case "M": return "Nam";
+            case "F": return "Nữ";
+            case "O": return "Không xác định";
+            default:  return "—";
+        }
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvPhone, tvGender, tvDob, tvAddress;
-        ViewHolder(View itemView) {
-            super(itemView);
-            tvName = itemView.findViewById(R.id.tvPatientName);
-            tvPhone = itemView.findViewById(R.id.tvPatientPhone);
-            tvGender = itemView.findViewById(R.id.tvPatientGender);
-            tvDob = itemView.findViewById(R.id.tvPatientDob);
-            tvAddress = itemView.findViewById(R.id.tvPatientAddress);
+    static class VH extends RecyclerView.ViewHolder {
+        TextView tvName, tvGender, tvPhone, tvAddress, tvDob;
+        ImageButton btnEdit, btnDelete;
+        VH(@NonNull View v) {
+            super(v);
+            tvName    = v.findViewById(R.id.tvPatientName);
+            tvGender  = v.findViewById(R.id.tvPatientGender);
+            tvPhone   = v.findViewById(R.id.tvPatientPhone);
+            tvAddress = v.findViewById(R.id.tvPatientAddress);
+            tvDob     = v.findViewById(R.id.tvPatientDob);
+            btnEdit   = v.findViewById(R.id.btnEditPatient);
+            btnDelete = v.findViewById(R.id.btnDeletePatient);
         }
     }
 }

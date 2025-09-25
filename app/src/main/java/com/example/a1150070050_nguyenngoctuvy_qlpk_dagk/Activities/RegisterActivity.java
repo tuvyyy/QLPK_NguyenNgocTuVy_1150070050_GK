@@ -31,8 +31,8 @@ public class RegisterActivity extends AppCompatActivity {
     private TextView tvLogin;
 
     private OkHttpClient client;
-    // Đổi link này mỗi lần ngrok restart
-    private final String BASE_URL = "https://4f438d1f500c.ngrok-free.app/api/Users/register";
+
+    private final String BASE_URL = "https://172.20.10.3:5179/api/Users/register";
     private final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     @Override

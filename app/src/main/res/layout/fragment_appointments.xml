@@ -1,10 +1,49 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="16dp">
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Quản lý lịch hẹn"
-        android:textSize="18sp"/>
-</FrameLayout>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:padding="12dp"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical">
+
+        <EditText
+            android:id="@+id/etApptDate"
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:focusable="false"
+            android:hint="Ngày (yyyy-MM-dd)"/>
+
+        <Button
+            android:id="@+id/btnPickApptDate"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Chọn ngày" android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
+    <AutoCompleteTextView
+        android:id="@+id/ddDoctorFilter"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:hint="Lọc theo bác sĩ" android:layout_marginTop="8dp"/>
+
+    <Button
+        android:id="@+id/btnAddAppointment"
+        android:text="➕ Đặt lịch"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+
+    <ProgressBar
+        android:id="@+id/progressAppt"
+        style="?android:attr/progressBarStyleSmall"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="center" android:visibility="gone"
+        android:layout_marginTop="8dp"/>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeAppt"
+        android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:layout_marginTop="8dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvAppointments"
+            android:layout_width="match_parent" android:layout_height="match_parent"/>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+</LinearLayout>

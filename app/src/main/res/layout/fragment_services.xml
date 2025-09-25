@@ -1,10 +1,73 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="12dp"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="16dp">
+    android:layout_height="match_parent">
+
     <TextView
+        android:text="Quản lý Dịch vụ"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:layout_gravity="center_horizontal"
         android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <!-- Search -->
+    <EditText
+        android:id="@+id/etSearchService"
+        android:hint="Tìm theo tên dịch vụ"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:drawable/editbox_background"
+        android:padding="8dp"/>
+
+    <!-- Add new: name + price + button -->
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Quản lý dịch vụ"
-        android:textSize="18sp"/>
-</FrameLayout>
+        android:layout_marginTop="8dp">
+
+        <EditText
+            android:id="@+id/etServiceName"
+            android:hint="Tên dịch vụ"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:background="@android:drawable/editbox_background"
+            android:padding="8dp"/>
+
+        <EditText
+            android:id="@+id/etServicePrice"
+            android:hint="Giá"
+            android:inputType="number"
+            android:layout_width="110dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="@android:drawable/editbox_background"
+            android:padding="8dp"/>
+
+        <Button
+            android:id="@+id/btnAddService"
+            android:text="Thêm"
+            android:layout_width="80dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
+    <!-- Pull to refresh -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="10dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvServices"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+</LinearLayout>

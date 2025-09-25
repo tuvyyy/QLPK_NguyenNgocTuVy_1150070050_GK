@@ -1,60 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:padding="16dp"
+    android:padding="12dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Tiêu đề -->
     <TextView
-        android:id="@+id/tvTitle"
+        android:text="Quản lý Bác sĩ"
+        android:textStyle="bold"
+        android:textSize="20sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Quản lý bác sĩ"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:layout_gravity="center"
-        android:paddingBottom="8dp"/>
+        android:layout_gravity="center_horizontal"
+        android:padding="4dp"/>
 
-    <!-- Nhập thông tin thêm mới -->
-    <EditText
-        android:id="@+id/etDoctorName"
+    <!-- Hàng tìm kiếm: tên + nút Tìm + dropdown lọc chuyên khoa -->
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_edittext"
-        android:hint="Tên bác sĩ"
-        android:minHeight="48dp" />
+        android:layout_marginTop="8dp">
 
-    <EditText
-        android:id="@+id/etDoctorSpecialty"
+        <EditText
+            android:id="@+id/etSearch"
+            android:hint="Nhập tên bác sĩ cần tìm"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:background="@android:drawable/editbox_background"
+            android:padding="8dp"/>
+
+        <Button
+            android:id="@+id/btnSearch"
+            android:text="Tìm"
+            android:layout_width="72dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"/>
+
+        <Spinner
+            android:id="@+id/spFilterSpecialty"
+            android:layout_width="120dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
+    <!-- Khung thêm mới: Tên + SĐT -->
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_edittext"
-        android:hint="Chuyên khoa"
-        android:minHeight="48dp" />
+        android:layout_marginTop="10dp">
 
-    <EditText
-        android:id="@+id/etDoctorPhone"
+        <EditText
+            android:id="@+id/etName"
+            android:hint="Tên bác sĩ"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:background="@android:drawable/editbox_background"
+            android:padding="8dp"/>
+
+        <EditText
+            android:id="@+id/etPhone"
+            android:hint="SĐT"
+            android:inputType="phone"
+            android:layout_width="110dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="@android:drawable/editbox_background"/>
+    </LinearLayout>
+
+    <!-- Chuyên khoa (dropdown lấy từ CSDL) + nút Thêm -->
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_edittext"
-        android:hint="Số điện thoại"
-        android:inputType="phone"
-        android:minHeight="48dp" />
+        android:layout_marginTop="6dp">
 
-    <!-- Chỉ còn nút Thêm -->
-    <Button
-        android:id="@+id/btnAddDoctor"
-        android:text="➕ Thêm bác sĩ"
+        <Spinner
+            android:id="@+id/spInputSpecialty"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"/>
+
+        <Button
+            android:id="@+id/btnAdd"
+            android:text="➕ Thêm"
+            android:layout_width="110dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
+    <View
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/white"
+        android:layout_height="1dp"
+        android:background="#DDDDDD"
         android:layout_marginTop="8dp"/>
 
-    <!-- Danh sách hiển thị luôn -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvDoctors"
+        android:id="@+id/rv"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingTop="12dp"/>
+        android:layout_marginTop="8dp"
+        android:layout_weight="1"/>
 </LinearLayout>

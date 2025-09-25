@@ -1,11 +1,20 @@
 package com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.Fragments;
 
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -13,8 +22,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.widget.SearchView;
 
 import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.R;
 import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.adapters.PatientAdapter;
@@ -25,7 +32,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -37,216 +46,307 @@ import okhttp3.Response;
 
 public class PatientsFragment extends Fragment {
 
-    private EditText etName, etDob, etGender, etPhone, etAddress;
+    // ĐỔI IP/PORT cho máy bạn
+    private static final String PATIENTS_URL = "http://192.168.1.9:5179/api/Patients";
+
+    private EditText etSearch, etName, etDob, etPhone, etAddress;
+    private Spinner spGender;
     private Button btnAdd;
-    private RecyclerView rvPatients;
+    private RecyclerView rv;
     private PatientAdapter adapter;
-    private List<Patient> patientList = new ArrayList<>();
-    private SearchView svPatients;
+    private final List<Patient> data = new ArrayList<>();
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
-    private OkHttpClient client;
-    private final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+    private final OkHttpClient client = new OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
+            .build();
+    private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
-    // 👉 chỉnh IP theo backend LAN/ngrok
-    private final String BASE_URL = "http://192.168.1.4:5179/api/Patients";
+    private String currentQuery = "";
+
+    // Hiển thị cho người dùng (VN)
+    private static final String[] GENDER_DISPLAY = {"(Giới tính)", "Nam", "Nữ", "Không xác định"};
+    // Code gửi backend (giữ M/F/O để tương thích)
+    private static final String[] GENDER_CODE = {"", "M", "F", "O"};
+
+    private String codeFromDisplay(String display) {
+        switch (display) {
+            case "Nam": return "M";
+            case "Nữ": return "F";
+            case "Không xác định": return "O";
+            default: return "";
+        }
+    }
+    private String displayFromCode(String code) {
+        if (code == null) return "(Giới tính)";
+        switch (code.toUpperCase()) {
+            case "M": return "Nam";
+            case "F": return "Nữ";
+            case "O": return "Không xác định";
+            default:  return "(Giới tính)";
+        }
+    }
+    private int displayIndex(String display) {
+        for (int i=0;i<GENDER_DISPLAY.length;i++) if (GENDER_DISPLAY[i].equals(display)) return i;
+        return 0;
+    }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_patients, container, false);
+        View v = inflater.inflate(R.layout.fragment_patients, container, false);
 
-        etName = view.findViewById(R.id.etPatientName);
-        etDob = view.findViewById(R.id.etPatientDob);
-        etGender = view.findViewById(R.id.etPatientGender);
-        etPhone = view.findViewById(R.id.etPatientPhone);
-        etAddress = view.findViewById(R.id.etPatientAddress);
-        btnAdd = view.findViewById(R.id.btnAddPatient);
-        svPatients = view.findViewById(R.id.svPatients);
+        etSearch = v.findViewById(R.id.etSearch);
+        etName = v.findViewById(R.id.etName);
+        etDob = v.findViewById(R.id.etDob);
+        etPhone = v.findViewById(R.id.etPhone);
+        etAddress = v.findViewById(R.id.etAddress);
+        spGender = v.findViewById(R.id.spGender);
+        btnAdd = v.findViewById(R.id.btnAdd);
+        rv = v.findViewById(R.id.rv);
 
-        rvPatients = view.findViewById(R.id.rvPatients);
-        rvPatients.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new PatientAdapter(getContext(), patientList, new PatientAdapter.OnPatientActionListener() {
-            @Override
-            public void onUpdatePatient(Patient patient) {
-                updatePatient(patient);
-            }
-
-            @Override
-            public void onDeletePatient(Patient patient) {
-                deletePatient(patient.getId());
-            }
+        rv.setLayoutManager(new LinearLayoutManager(getContext()));
+        adapter = new PatientAdapter(data, new PatientAdapter.Listener() {
+            @Override public void onEdit(Patient p) { showEditDialog(p); }
+            @Override public void onDelete(Patient p) { confirmDelete(p.getId()); }
         });
-        rvPatients.setAdapter(adapter);
+        rv.setAdapter(adapter);
 
-        client = new OkHttpClient();
+        // Spinner giới tính (VN)
+        spGender.setAdapter(new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_spinner_dropdown_item, GENDER_DISPLAY));
 
-        btnAdd.setOnClickListener(v -> createPatient());
+        etDob.setOnClickListener(v1 -> showDatePicker(etDob));
 
-        // search
-        svPatients.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                searchPatients(query);
-                return true;
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                currentQuery = s.toString();
+                debounce();
             }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                if (newText.isEmpty()) {
-                    getPatients(); // reset khi xóa input
-                }
-                return false;
-            }
+            @Override public void afterTextChanged(Editable s) {}
         });
 
-        // load dữ liệu ban đầu
-        getPatients();
-
-        return view;
+        btnAdd.setOnClickListener(v12 -> createPatient());
+        load();
+        return v;
     }
 
-    // ==================== API CALLS ====================
+    private void toast(String m){ Toast.makeText(getContext(), m, Toast.LENGTH_SHORT).show(); }
+    private void debounce(){ handler.removeCallbacksAndMessages(null); handler.postDelayed(this::load, 350); }
 
-    private void getPatients() {
-        Request request = new Request.Builder().url(BASE_URL).build();
+    private void showDatePicker(EditText target){
+        Calendar c = Calendar.getInstance();
+        new DatePickerDialog(getContext(), (DatePicker view, int y, int m, int d) -> {
+            String mm = (m+1<10?("0"+(m+1)):(m+1+""));
+            String dd = (d<10?("0"+d):(d+""));
+            target.setText(y+"-"+mm+"-"+dd);
+        }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
+    }
 
-        client.newCall(request).enqueue(new Callback() {
-            @Override public void onFailure(Call call, IOException e) {
-                requireActivity().runOnUiThread(() ->
-                        Toast.makeText(getContext(), "Không kết nối được server!", Toast.LENGTH_SHORT).show());
+    private void load(){
+        String url = PATIENTS_URL + "?page=1&pageSize=200&sort=name_asc";
+        if (!currentQuery.trim().isEmpty()) url += "&q=" + currentQuery.trim();
+
+        Request req = new Request.Builder().url(url).build();
+        client.newCall(req).enqueue(new Callback() {
+            @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                requireActivity().runOnUiThread(() -> toast("Lỗi mạng"));
             }
-
-            @Override public void onResponse(Call call, Response response) throws IOException {
-                String respBody = response.body() != null ? response.body().string() : "";
-                if (response.isSuccessful()) {
-                    try {
-                        JSONArray arr = new JSONArray(respBody);
-                        patientList.clear();
-                        for (int i = 0; i < arr.length(); i++) {
-                            JSONObject obj = arr.getJSONObject(i);
-                            Patient p = new Patient(
-                                    obj.getInt("id"),
-                                    obj.getString("fullName"),
-                                    obj.optString("dob", ""),
-                                    obj.optString("gender", ""),
-                                    obj.optString("phone", ""),
-                                    obj.optString("address", "")
-                            );
-                            patientList.add(p);
-                        }
-                        requireActivity().runOnUiThread(() -> adapter.notifyDataSetChanged());
-                    } catch (Exception e) { e.printStackTrace(); }
-                }
+            @Override public void onResponse(@NonNull Call call, @NonNull Response resp) throws IOException {
+                String body = resp.body()!=null?resp.body().string():"";
+                if (!resp.isSuccessful()) return;
+                try{
+                    JSONObject o = new JSONObject(body);
+                    JSONArray arr = o.getJSONArray("items");
+                    List<Patient> tmp = new ArrayList<>();
+                    for (int i=0;i<arr.length();i++){
+                        JSONObject it = arr.getJSONObject(i);
+                        tmp.add(new Patient(
+                                it.getInt("id"),
+                                it.optString("fullName",""),
+                                it.isNull("dob")?null:it.getString("dob"),
+                                it.optString("gender",null),
+                                it.isNull("phone")?null:it.getString("phone"),
+                                it.optString("address",null)
+                        ));
+                    }
+                    requireActivity().runOnUiThread(() -> { data.clear(); data.addAll(tmp); adapter.notifyDataSetChanged(); });
+                }catch (Exception ignore){}
             }
         });
     }
 
-    private void searchPatients(String keyword) {
-        Request request = new Request.Builder()
-                .url(BASE_URL + "/search?keyword=" + keyword)
-                .build();
+    private void createPatient(){
+        String name = etName.getText().toString().trim();
+        String dob = etDob.getText().toString().trim();
+        String addr = etAddress.getText().toString().trim();
 
-        client.newCall(request).enqueue(new Callback() {
-            @Override public void onFailure(Call call, IOException e) {
-                requireActivity().runOnUiThread(() ->
-                        Toast.makeText(getContext(), "Không kết nối được server!", Toast.LENGTH_SHORT).show());
-            }
+        if (name.isEmpty()){ toast("Nhập họ tên"); return; }
 
-            @Override public void onResponse(Call call, Response response) throws IOException {
-                String respBody = response.body() != null ? response.body().string() : "";
-                if (response.isSuccessful()) {
-                    try {
-                        JSONArray arr = new JSONArray(respBody);
-                        patientList.clear();
-                        for (int i = 0; i < arr.length(); i++) {
-                            JSONObject obj = arr.getJSONObject(i);
-                            Patient p = new Patient(
-                                    obj.getInt("id"),
-                                    obj.getString("fullName"),
-                                    obj.optString("dob", ""),
-                                    obj.optString("gender", ""),
-                                    obj.optString("phone", ""),
-                                    obj.optString("address", "")
-                            );
-                            patientList.add(p);
-                        }
-                        requireActivity().runOnUiThread(() -> adapter.notifyDataSetChanged());
-                    } catch (Exception e) { e.printStackTrace(); }
+        String genderDisplay = (String) spGender.getSelectedItem();
+        String gender = codeFromDisplay(genderDisplay); // map VN -> M/F/O
+
+        // chuẩn hoá & final cho inner class
+        String p = etPhone.getText().toString().trim().replaceAll("\\s+","");
+        final String phoneNorm = p;
+
+        if (!phoneNorm.isEmpty()){
+            String url = PATIENTS_URL + "/exists/phone?phone=" + phoneNorm;
+            client.newCall(new Request.Builder().url(url).build()).enqueue(new Callback() {
+                @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    doCreate(name, dob, gender, phoneNorm, addr);
                 }
-            }
-        });
-    }
-
-    private void createPatient() {
-        try {
-            JSONObject json = new JSONObject();
-            json.put("fullName", etName.getText().toString());
-            json.put("dob", etDob.getText().toString());
-            json.put("gender", etGender.getText().toString());
-            json.put("phone", etPhone.getText().toString());
-            json.put("address", etAddress.getText().toString());
-
-            RequestBody body = RequestBody.create(json.toString(), JSON);
-            Request request = new Request.Builder().url(BASE_URL).post(body).build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override public void onFailure(Call call, IOException e) {
-                    requireActivity().runOnUiThread(() ->
-                            Toast.makeText(getContext(), "Lỗi thêm bệnh nhân!", Toast.LENGTH_SHORT).show());
-                }
-                @Override public void onResponse(Call call, Response response) {
-                    requireActivity().runOnUiThread(() ->
-                            Toast.makeText(getContext(), "Thêm thành công!", Toast.LENGTH_SHORT).show());
-                    getPatients();
+                @Override public void onResponse(@NonNull Call call, @NonNull Response resp) throws IOException {
+                    String b = resp.body()!=null?resp.body().string():"";
+                    try{
+                        JSONObject o = new JSONObject(b);
+                        if (o.optBoolean("valid") && o.optBoolean("exists")){
+                            requireActivity().runOnUiThread(() -> toast("SĐT đã tồn tại"));
+                        } else doCreate(name, dob, gender, phoneNorm, addr);
+                    }catch (Exception e){ doCreate(name, dob, gender, phoneNorm, addr); }
                 }
             });
-        } catch (Exception e) { e.printStackTrace(); }
+        } else {
+            doCreate(name, dob, gender, "", addr);
+        }
     }
 
-    private void updatePatient(Patient patient) {
-        try {
-            JSONObject json = new JSONObject();
-            json.put("id", patient.getId());
-            json.put("fullName", patient.getFullName());
-            json.put("dob", patient.getDob());
-            json.put("gender", patient.getGender());
-            json.put("phone", patient.getPhone());
-            json.put("address", patient.getAddress());
+    private void doCreate(String name, String dob, String gender, String phone, String addr){
+        try{
+            JSONObject js = new JSONObject();
+            js.put("fullName", name);
+            if (!dob.isEmpty()) js.put("dob", dob);
+            if (!gender.isEmpty()) js.put("gender", gender);          // "M"/"F"/"O"
+            if (!phone.isEmpty()) js.put("phone", phone);
+            if (!addr.isEmpty()) js.put("address", addr);
 
-            RequestBody body = RequestBody.create(json.toString(), JSON);
-            Request request = new Request.Builder()
-                    .url(BASE_URL + "/" + patient.getId())
-                    .put(body)
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override public void onFailure(Call call, IOException e) {
-                    requireActivity().runOnUiThread(() ->
-                            Toast.makeText(getContext(), "Lỗi cập nhật!", Toast.LENGTH_SHORT).show());
+            RequestBody body = RequestBody.create(js.toString(), JSON);
+            Request req = new Request.Builder().url(PATIENTS_URL).post(body).build();
+            client.newCall(req).enqueue(new Callback() {
+                @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    requireActivity().runOnUiThread(() -> toast("Lỗi thêm"));
                 }
-                @Override public void onResponse(Call call, Response response) {
-                    requireActivity().runOnUiThread(() ->
-                            Toast.makeText(getContext(), "Cập nhật thành công!", Toast.LENGTH_SHORT).show());
-                    getPatients();
+                @Override public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    String b = response.body()!=null?response.body().string():"";
+                    requireActivity().runOnUiThread(() -> {
+                        if (response.isSuccessful()){
+                            toast("Thêm thành công");
+                            etName.setText(""); etDob.setText(""); etPhone.setText(""); etAddress.setText("");
+                            spGender.setSelection(0);
+                            load();
+                        } else {
+                            try {
+                                String msg = new JSONObject(b).optString("message","Thêm lỗi");
+                                toast(msg);
+                            } catch (Exception ex) { toast("Thêm lỗi"); }
+                        }
+                    });
                 }
             });
-        } catch (Exception e) { e.printStackTrace(); }
+        }catch (Exception ignore){}
     }
 
-    private void deletePatient(int id) {
-        Request request = new Request.Builder().url(BASE_URL + "/" + id).delete().build();
+    private void showEditDialog(Patient p){
+        View dv = LayoutInflater.from(getContext()).inflate(R.layout.dialog_edit_patient, null);
+        EditText eName = dv.findViewById(R.id.etEditName);
+        EditText eDob  = dv.findViewById(R.id.etEditDob);
+        Spinner spEditGender = dv.findViewById(R.id.spEditGender);
+        EditText ePhone = dv.findViewById(R.id.etEditPhone);
+        EditText eAddr  = dv.findViewById(R.id.etEditAddress);
 
-        client.newCall(request).enqueue(new Callback() {
-            @Override public void onFailure(Call call, IOException e) {
-                requireActivity().runOnUiThread(() ->
-                        Toast.makeText(getContext(), "Không xóa được!", Toast.LENGTH_SHORT).show());
+        eName.setText(p.getFullName());
+        eDob.setText(p.getDob());
+
+        ArrayAdapter<String> genderEditAdapter = new ArrayAdapter<>(
+                requireContext(), android.R.layout.simple_spinner_dropdown_item, GENDER_DISPLAY);
+        spEditGender.setAdapter(genderEditAdapter);
+        String display = displayFromCode(p.getGender());
+        spEditGender.setSelection(displayIndex(display));
+
+        ePhone.setText(p.getPhone());
+        eAddr.setText(p.getAddress());
+        eDob.setOnClickListener(v -> showDatePicker(eDob));
+
+        new AlertDialog.Builder(getContext())
+                .setTitle("Cập nhật bệnh nhân")
+                .setView(dv)
+                .setPositiveButton("Lưu", (dialog, which) -> {
+                    p.setFullName(eName.getText().toString().trim());
+                    p.setDob(eDob.getText().toString().trim());
+                    String genderDispSel = (String) spEditGender.getSelectedItem();
+                    p.setGender(codeFromDisplay(genderDispSel));  // M/F/O
+                    p.setPhone(ePhone.getText().toString().trim());
+                    p.setAddress(eAddr.getText().toString().trim());
+                    updatePatient(p);
+                })
+                .setNegativeButton("Huỷ", null)
+                .show();
+    }
+
+    private void updatePatient(Patient p){
+        try{
+            JSONObject js = new JSONObject();
+            js.put("id", p.getId());
+            js.put("fullName", p.getFullName());
+            if (p.getDob()!=null && !p.getDob().isEmpty()) js.put("dob", p.getDob());
+            if (p.getGender()!=null && !p.getGender().isEmpty()) js.put("gender", p.getGender());
+            if (p.getPhone()!=null && !p.getPhone().isEmpty()) js.put("phone", p.getPhone().replaceAll("\\s+",""));
+            if (p.getAddress()!=null && !p.getAddress().isEmpty()) js.put("address", p.getAddress());
+
+            RequestBody body = RequestBody.create(js.toString(), JSON);
+            Request req = new Request.Builder().url(PATIENTS_URL + "/" + p.getId()).put(body).build();
+            client.newCall(req).enqueue(new Callback() {
+                @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    requireActivity().runOnUiThread(() -> toast("Lỗi cập nhật"));
+                }
+                @Override public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    String b = response.body()!=null?response.body().string():"";
+                    requireActivity().runOnUiThread(() -> {
+                        if (response.isSuccessful()){
+                            toast("Đã cập nhật");
+                            load();
+                        } else {
+                            try {
+                                String msg = new JSONObject(b).optString("message","Cập nhật lỗi");
+                                toast(msg);
+                            } catch (Exception ex) { toast("Cập nhật lỗi"); }
+                        }
+                    });
+                }
+            });
+        }catch (Exception ignore){}
+    }
+
+    private void confirmDelete(int id){
+        new AlertDialog.Builder(getContext())
+                .setMessage("Xoá bệnh nhân này?")
+                .setPositiveButton("Xoá", (d, w) -> deletePatient(id))
+                .setNegativeButton("Huỷ", null)
+                .show();
+    }
+
+    private void deletePatient(int id){
+        Request req = new Request.Builder().url(PATIENTS_URL + "/" + id).delete().build();
+        client.newCall(req).enqueue(new Callback() {
+            @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                requireActivity().runOnUiThread(() -> toast("Lỗi xoá"));
             }
-            @Override public void onResponse(Call call, Response response) {
-                requireActivity().runOnUiThread(() ->
-                        Toast.makeText(getContext(), "Xóa thành công!", Toast.LENGTH_SHORT).show());
-                getPatients();
+            @Override public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                requireActivity().runOnUiThread(() -> {
+                    if (response.code()==409) {
+                        toast("Bệnh nhân còn lịch – huỷ/xoá lịch trước");
+                    } else if (response.isSuccessful()){
+                        toast("Đã xoá");
+                        load();
+                    } else {
+                        toast("Xoá lỗi");
+                    }
+                });
             }
         });
     }

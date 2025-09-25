@@ -5,6 +5,12 @@
     <!-- Quyền Internet -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <uses-permission android:name="android.permission.RECEIVE_SMS"/>
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
+
+
     <application
         android:allowBackup="true"
         android:usesCleartextTraffic="true"
@@ -13,6 +19,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme._1150070050_NguyenNgocTuVy_QLPK_DAGK">
+
+
+        <activity
+            android:name=".SmsDemoActivity"
+            android:exported="true"
+            android:label="SMS Demo"/>
 
         <!-- LoginActivity: entry point -->
         <activity
@@ -38,6 +50,11 @@
         <activity
             android:name=".MainActivity"
             android:exported="true" />
+
+        <!-- khai báo cho pin rút/ cắm sạc-->
+        <activity android:name=".PowerStatusActivity"
+            android:exported="true"
+            android:label="Power Status"/>
 
     </application>
 
