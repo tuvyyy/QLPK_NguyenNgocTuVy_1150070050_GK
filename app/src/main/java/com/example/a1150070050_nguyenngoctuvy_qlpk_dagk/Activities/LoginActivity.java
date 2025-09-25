@@ -3,16 +3,28 @@ package com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.Activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.MainActivity;
 import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.R;
 
+// 👇 các import gms BẮT BUỘC (sẽ hết đỏ khi lib tải xong)
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
+
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -28,121 +40,150 @@ import okhttp3.Response;
 public class LoginActivity extends AppCompatActivity {
 
     private EditText etUsername, etPassword;
-    private OkHttpClient client;
 
-    private final String BASE_URL = "http://172.20.10.3:5179/api/Users/login";
-    private final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+    private final OkHttpClient http = new OkHttpClient();
+    private static final MediaType JSON
+            = MediaType.get("application/json; charset=utf-8");
+
+    private static final String LOGIN_URL = "http://172.20.10.3:5179/api/Users/login";
+    private static final String GOOGLE_LOGIN_URL = "http://172.20.10.3:5179/api/Auth/google";
+
+    private GoogleSignInClient googleClient;
+    private final ActivityResultLauncher<Intent> signInLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                Intent data = result.getData();
+                Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+                handleGoogleResult(task);
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_login);
 
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
         Button btnLogin = findViewById(R.id.btnLogin);
+        Button btnGoogle = findViewById(R.id.btnGoogleSignIn);
         TextView tvRegister = findViewById(R.id.tvRegister);
         TextView tvForgotPassword = findViewById(R.id.tvForgotPassword);
 
-        client = new OkHttpClient();
-
-        // Xử lý đăng nhập
+        // Login thường
         btnLogin.setOnClickListener(v -> {
             String user = etUsername.getText().toString().trim();
             String pass = etPassword.getText().toString().trim();
-
-            if (TextUtils.isEmpty(user)) {
-                etUsername.setError("Vui lòng nhập tên đăng nhập!");
-                return;
-            }
-            if (TextUtils.isEmpty(pass)) {
-                etPassword.setError("Vui lòng nhập mật khẩu!");
-                return;
-            }
-
-            checkLogin(user, pass);
+            if (TextUtils.isEmpty(user)) { etUsername.setError("Vui lòng nhập tên đăng nhập!"); return; }
+            if (TextUtils.isEmpty(pass)) { etPassword.setError("Vui lòng nhập mật khẩu!"); return; }
+            loginWithUsername(user, pass);
         });
 
-        // Chuyển sang Đăng ký
-        tvRegister.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-            startActivity(intent);
-        });
+        tvRegister.setOnClickListener(v ->
+                startActivity(new Intent(LoginActivity.this, RegisterActivity.class)));
+        tvForgotPassword.setOnClickListener(v ->
+                startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class)));
 
-        // Chuyển sang Quên mật khẩu
-        tvForgotPassword.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
-            startActivity(intent);
-        });
+        // Google Sign-In (dùng WEB CLIENT ID trong strings.xml)
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestIdToken(getString(R.string.web_client_id))
+                .build();
+        googleClient = GoogleSignIn.getClient(this, gso);
+
+        btnGoogle.setOnClickListener(v ->
+                signInLauncher.launch(googleClient.getSignInIntent()));
     }
 
-    private void checkLogin(String username, String password) {
+    private void loginWithUsername(String username, String password) {
         try {
-            // ✅ JSON body đúng với LoginDto bên backend
             JSONObject json = new JSONObject();
             json.put("username", username);
-            json.put("password", password);   // Đúng với LoginDto
+            json.put("password", password);
 
-            RequestBody body = RequestBody.create(json.toString(), JSON);
-
-            Request request = new Request.Builder()
-                    .url(BASE_URL)  // POST /api/Users/login
-                    .post(body)
+            Request req = new Request.Builder()
+                    .url(LOGIN_URL)
+                    .post(RequestBody.create(json.toString(), JSON))
                     .build();
 
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    runOnUiThread(() ->
-                            Toast.makeText(LoginActivity.this, "Không thể kết nối server!", Toast.LENGTH_SHORT).show()
-                    );
+            http.newCall(req).enqueue(new Callback() {
+                @Override public void onFailure(Call call, IOException e) {
+                    runOnUiThread(() -> toast("Không thể kết nối server: " + e.getMessage()));
                 }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    String respBody = response.body() != null ? response.body().string() : "";
-
-                    if (!response.isSuccessful()) {
-                        runOnUiThread(() ->
-                                Toast.makeText(LoginActivity.this, "Sai tài khoản hoặc mật khẩu!", Toast.LENGTH_SHORT).show()
-                        );
+                @Override public void onResponse(Call call, Response res) throws IOException {
+                    String body = res.body()!=null ? res.body().string() : "";
+                    if (!res.isSuccessful()) {
+                        runOnUiThread(() -> toast("Sai tài khoản hoặc mật khẩu!"));
                         return;
                     }
-
                     try {
-                        JSONObject obj = new JSONObject(respBody);
-
+                        JSONObject obj = new JSONObject(body);
                         int id = obj.optInt("id", -1);
-                        String username = obj.optString("username", "");
+                        String uname = obj.optString("username", "");
                         String role = obj.optString("role", "user");
                         String email = obj.optString("email", "");
-
-                        runOnUiThread(() -> {
-                            Toast.makeText(LoginActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
-
-                            // 👉 Chuyển sang MainActivity và truyền thông tin user
-                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                            intent.putExtra("id", id);
-                            intent.putExtra("username", username);
-                            intent.putExtra("role", role);
-                            intent.putExtra("email", email);
-                            startActivity(intent);
-                            finish();
-                        });
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        runOnUiThread(() ->
-                                Toast.makeText(LoginActivity.this, "Lỗi xử lý dữ liệu từ server!", Toast.LENGTH_SHORT).show()
-                        );
+                        runOnUiThread(() -> goMain(id, uname, role, email));
+                    } catch (JSONException e) {
+                        runOnUiThread(() -> toast("Lỗi xử lý dữ liệu từ server!"));
                     }
                 }
             });
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Lỗi JSON!", Toast.LENGTH_SHORT).show();
+        } catch (JSONException e) {
+            toast("Lỗi JSON!");
         }
     }
 
+    private void handleGoogleResult(Task<GoogleSignInAccount> task) {
+        try {
+            GoogleSignInAccount acc = task.getResult(ApiException.class);
+            String idToken = acc.getIdToken();
+            if (idToken == null) {
+                toast("idToken=null. Kiểm tra WEB_CLIENT_ID & Android client (package+SHA1).");
+                return;
+            }
+            sendGoogleIdToken(idToken);
+        } catch (ApiException e) {
+            Log.e("GoogleSignIn", "Fail code=" + e.getStatusCode(), e);
+            toast("Đăng nhập Google thất bại: " + e.getStatusCode());
+        }
+    }
+
+    private void sendGoogleIdToken(String idToken) {
+        JSONObject json = new JSONObject();
+        try { json.put("idToken", idToken); } catch (JSONException ignored) {}
+
+        Request req = new Request.Builder()
+                .url(GOOGLE_LOGIN_URL)
+                .post(RequestBody.create(json.toString(), JSON))
+                .build();
+
+        new Thread(() -> {
+            try (Response res = http.newCall(req).execute()) {
+                String body = res.body()!=null ? res.body().string() : "";
+                if (!res.isSuccessful()) {
+                    runOnUiThread(() -> toast("Server từ chối Google token: " + res.code()));
+                    return;
+                }
+                JSONObject obj = new JSONObject(body);
+                String userName = obj.optString("userName", "User");
+                String role = obj.optString("role", "User");
+                runOnUiThread(() -> {
+                    toast("Đăng nhập Google thành công!");
+                    goMain(-1, userName, role, "");
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> toast("Không gọi được server: " + e.getMessage()));
+            }
+        }).start();
+    }
+
+    private void goMain(int id, String username, String role, String email) {
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        intent.putExtra("id", id);
+        intent.putExtra("username", username);
+        intent.putExtra("role", role);
+        intent.putExtra("email", email);
+        startActivity(intent);
+        finish();
+    }
+
+    private void toast(String m) { Toast.makeText(this, m, Toast.LENGTH_SHORT).show(); }
 }

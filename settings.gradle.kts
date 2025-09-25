@@ -18,7 +18,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-
 rootProject.name = "1150070050_NguyenNgocTuVy_QLPK_DAGK"
 include(":app")
- 

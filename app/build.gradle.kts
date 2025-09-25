@@ -37,6 +37,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation("com.google.android.gms:play-services-auth:21.2.0") // Google Sign-In
 
     // Test mặc định
     testImplementation(libs.junit)

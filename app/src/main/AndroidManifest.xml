@@ -5,6 +5,12 @@
     <!-- Quyền Internet -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!--    phân quyền cho sms-->
+    <uses-permission android:name="android.permission.RECEIVE_SMS"/>
+    <uses-permission android:name="android.permission.SEND_SMS"/>
+    <uses-permission android:name="android.permission.READ_SMS"/> <!-- có thể bỏ nếu không đọc hộp thư -->
+    <uses-permission android:name="android.permission.CALL_PHONE"/>
+
     <uses-permission android:name="android.permission.RECEIVE_SMS"/>
     <uses-feature
         android:name="android.hardware.telephony"
@@ -56,6 +62,14 @@
             android:exported="true"
             android:label="Power Status"/>
 
+
+        <!--khai báo sms-->
+        <activity android:name=".emergency.EmergencyActivity" android:exported="true" />
+        <receiver android:name=".emergency.SmsReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

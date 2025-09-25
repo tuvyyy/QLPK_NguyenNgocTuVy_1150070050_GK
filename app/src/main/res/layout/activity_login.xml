@@ -1,108 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="24dp"
     android:background="#F5F9FF"
     tools:context=".Activities.LoginActivity">
 
-    <!-- Logo phòng khám -->
-    <ImageView
-        android:id="@+id/logoClinic"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:src="@mipmap/ic_launcher_round"
-        android:layout_marginBottom="16dp"
-        android:contentDescription="Clinic Logo"
-        android:background="@drawable/bg_circle"
-        android:padding="12dp" />
-
-    <!-- Tiêu đề -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="PHÒNG KHÁM ĐA KHOA"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:textColor="#2B4C7E"
-        android:layout_marginBottom="32dp" />
-
-    <!-- Nhập tài khoản -->
-    <EditText
-        android:id="@+id/etUsername"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:hint="Tên đăng nhập"
-        android:padding="12dp"
-        android:background="@drawable/bg_edittext"
-        android:drawableStart="@android:drawable/ic_menu_myplaces"
-        android:drawablePadding="10dp"
-        android:textSize="16sp"
-        android:layout_marginBottom="16dp" />
-
-    <!-- Nhập mật khẩu -->
-    <EditText
-        android:id="@+id/etPassword"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:hint="Mật khẩu"
-        android:padding="12dp"
-        android:background="@drawable/bg_edittext"
-        android:drawableStart="@android:drawable/ic_lock_idle_lock"
-        android:drawablePadding="10dp"
-        android:inputType="textPassword"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp" />
-
-    <!-- Quên mật khẩu -->
-    <TextView
-        android:id="@+id/tvForgotPassword"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Quên mật khẩu?"
-        android:textColor="#3F72AF"
-        android:textSize="14sp"
-        android:layout_gravity="end"
-        android:layout_marginBottom="24dp" />
-
-    <!-- Nút đăng nhập -->
-    <Button
-        android:id="@+id/btnLogin"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:text="Đăng nhập"
-        android:textAllCaps="false"
-        android:textSize="18sp"
-        android:textColor="@android:color/white"
-        android:backgroundTint="#3F72AF"
-        android:layout_marginBottom="24dp" />
-
-    <!-- Chưa có tài khoản -->
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:id="@+id/main"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center">
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp">
 
+        <!-- Logo -->
+        <ImageView
+            android:id="@+id/logoClinic"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@mipmap/ic_launcher_round"
+            android:layout_marginBottom="16dp"
+            android:contentDescription="Clinic Logo"
+            android:background="@drawable/bg_circle"
+            android:padding="12dp" />
+
+        <!-- Tiêu đề -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Chưa có tài khoản?"
-            android:textSize="14sp"
-            android:textColor="#666" />
-
-        <TextView
-            android:id="@+id/tvRegister"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text=" Đăng ký ngay"
+            android:text="PHÒNG KHÁM ĐA KHOA"
+            android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="#2B4C7E"
-            android:textSize="14sp" />
-    </LinearLayout>
+            android:layout_marginBottom="32dp" />
 
-</LinearLayout>
+        <!-- Username -->
+        <EditText
+            android:id="@+id/etUsername"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Tên đăng nhập"
+            android:padding="12dp"
+            android:background="@drawable/bg_edittext"
+            android:drawableStart="@android:drawable/ic_menu_myplaces"
+            android:drawablePadding="10dp"
+            android:textSize="16sp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Password -->
+        <EditText
+            android:id="@+id/etPassword"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Mật khẩu"
+            android:padding="12dp"
+            android:background="@drawable/bg_edittext"
+            android:drawableStart="@android:drawable/ic_lock_idle_lock"
+            android:drawablePadding="10dp"
+            android:inputType="textPassword"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Quên mật khẩu -->
+        <TextView
+            android:id="@+id/tvForgotPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Quên mật khẩu?"
+            android:textColor="#3F72AF"
+            android:textSize="14sp"
+            android:layout_gravity="end"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Nút đăng nhập -->
+        <Button
+            android:id="@+id/btnLogin"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="Đăng nhập"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#3F72AF"
+            android:layout_marginBottom="16dp" />
+
+
+        <!-- Nút Google Sign-In -->
+        <Button
+            android:id="@+id/btnGoogleSignIn"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="Đăng nhập với Google"
+            android:layout_marginBottom="24dp" />
+
+
+        <!-- Đăng ký -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chưa có tài khoản?"
+                android:textSize="14sp"
+                android:textColor="#666" />
+
+            <TextView
+                android:id="@+id/tvRegister"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" Đăng ký ngay"
+                android:textStyle="bold"
+                android:textColor="#2B4C7E"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
