@@ -32,7 +32,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private OkHttpClient client;
 
-    private final String BASE_URL = "https://172.20.10.3:5179/api/Users/register";
+    private final String BASE_URL = "http://192.168.1.6:5179 /api/Users/register";
     private final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     @Override

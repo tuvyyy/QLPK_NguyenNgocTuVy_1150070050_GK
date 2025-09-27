@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public class ApiTest {
     private static final OkHttpClient client = new OkHttpClient();
-    private static final String BASE_URL = "http://192.168.0.207:5179/api/Users";
+    private static final String BASE_URL = "http://172.20.10.2:5179/api/Users";
     // Nếu sau này chạy bằng emulator → đổi localhost thành 10.0.2.2
 
     // GET ALL USERS

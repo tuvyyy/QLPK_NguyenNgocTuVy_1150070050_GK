@@ -16,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.MainActivity;
 import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.R;
 
-// 👇 các import gms BẮT BUỘC (sẽ hết đỏ khi lib tải xong)
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -42,11 +41,9 @@ public class LoginActivity extends AppCompatActivity {
     private EditText etUsername, etPassword;
 
     private final OkHttpClient http = new OkHttpClient();
-    private static final MediaType JSON
-            = MediaType.get("application/json; charset=utf-8");
-
-    private static final String LOGIN_URL = "http://172.20.10.3:5179/api/Users/login";
-    private static final String GOOGLE_LOGIN_URL = "http://172.20.10.3:5179/api/Auth/google";
+    private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+    private static final String LOGIN_URL = "http://192.168.1.6:5179/api/Users/login"; // Đảm bảo URL backend đúng
+    private static final String GOOGLE_LOGIN_URL = "http://192.168.1.6:5179/api/Auth/google"; // Google Login API
 
     private GoogleSignInClient googleClient;
     private final ActivityResultLauncher<Intent> signInLauncher =
@@ -68,19 +65,25 @@ public class LoginActivity extends AppCompatActivity {
         TextView tvRegister = findViewById(R.id.tvRegister);
         TextView tvForgotPassword = findViewById(R.id.tvForgotPassword);
 
-        // Login thường
+        // Đăng nhập với username/password
         btnLogin.setOnClickListener(v -> {
             String user = etUsername.getText().toString().trim();
             String pass = etPassword.getText().toString().trim();
-            if (TextUtils.isEmpty(user)) { etUsername.setError("Vui lòng nhập tên đăng nhập!"); return; }
-            if (TextUtils.isEmpty(pass)) { etPassword.setError("Vui lòng nhập mật khẩu!"); return; }
+            if (TextUtils.isEmpty(user)) {
+                etUsername.setError("Vui lòng nhập tên đăng nhập!");
+                return;
+            }
+            if (TextUtils.isEmpty(pass)) {
+                etPassword.setError("Vui lòng nhập mật khẩu!");
+                return;
+            }
             loginWithUsername(user, pass);
         });
 
-        tvRegister.setOnClickListener(v ->
-                startActivity(new Intent(LoginActivity.this, RegisterActivity.class)));
+        // Đăng ký và quên mật khẩu
+        tvRegister.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, RegisterActivity.class)));
         tvForgotPassword.setOnClickListener(v ->
-                startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class)));
+                startActivity(new Intent(LoginActivity.this, ForgotResetActivity.class)));
 
         // Google Sign-In (dùng WEB CLIENT ID trong strings.xml)
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -89,10 +92,10 @@ public class LoginActivity extends AppCompatActivity {
                 .build();
         googleClient = GoogleSignIn.getClient(this, gso);
 
-        btnGoogle.setOnClickListener(v ->
-                signInLauncher.launch(googleClient.getSignInIntent()));
+        btnGoogle.setOnClickListener(v -> signInLauncher.launch(googleClient.getSignInIntent()));
     }
 
+    // Đăng nhập qua username và password
     private void loginWithUsername(String username, String password) {
         try {
             JSONObject json = new JSONObject();
@@ -105,11 +108,14 @@ public class LoginActivity extends AppCompatActivity {
                     .build();
 
             http.newCall(req).enqueue(new Callback() {
-                @Override public void onFailure(Call call, IOException e) {
+                @Override
+                public void onFailure(Call call, IOException e) {
                     runOnUiThread(() -> toast("Không thể kết nối server: " + e.getMessage()));
                 }
-                @Override public void onResponse(Call call, Response res) throws IOException {
-                    String body = res.body()!=null ? res.body().string() : "";
+
+                @Override
+                public void onResponse(Call call, Response res) throws IOException {
+                    String body = res.body() != null ? res.body().string() : "";
                     if (!res.isSuccessful()) {
                         runOnUiThread(() -> toast("Sai tài khoản hoặc mật khẩu!"));
                         return;
@@ -131,6 +137,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    // Xử lý kết quả đăng nhập qua Google
     private void handleGoogleResult(Task<GoogleSignInAccount> task) {
         try {
             GoogleSignInAccount acc = task.getResult(ApiException.class);
@@ -146,9 +153,12 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    // Gửi Google idToken lên backend để đăng nhập
     private void sendGoogleIdToken(String idToken) {
         JSONObject json = new JSONObject();
-        try { json.put("idToken", idToken); } catch (JSONException ignored) {}
+        try {
+            json.put("idToken", idToken);
+        } catch (JSONException ignored) {}
 
         Request req = new Request.Builder()
                 .url(GOOGLE_LOGIN_URL)
@@ -157,7 +167,7 @@ public class LoginActivity extends AppCompatActivity {
 
         new Thread(() -> {
             try (Response res = http.newCall(req).execute()) {
-                String body = res.body()!=null ? res.body().string() : "";
+                String body = res.body() != null ? res.body().string() : "";
                 if (!res.isSuccessful()) {
                     runOnUiThread(() -> toast("Server từ chối Google token: " + res.code()));
                     return;
@@ -175,6 +185,7 @@ public class LoginActivity extends AppCompatActivity {
         }).start();
     }
 
+    // Chuyển đến màn hình chính sau khi đăng nhập thành công
     private void goMain(int id, String username, String role, String email) {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         intent.putExtra("id", id);
@@ -185,5 +196,7 @@ public class LoginActivity extends AppCompatActivity {
         finish();
     }
 
-    private void toast(String m) { Toast.makeText(this, m, Toast.LENGTH_SHORT).show(); }
+    private void toast(String m) {
+        Toast.makeText(this, m, Toast.LENGTH_SHORT).show();
+    }
 }

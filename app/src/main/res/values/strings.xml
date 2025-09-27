@@ -1,10 +1,11 @@
 <resources>
     <!-- Tên chính của app -->
-    <string name="app_name">1150070050_NguyenNgocTuVy_QLPK_DAGK</string>
+    <string name="app_name">Clinic</string>
     <string name="navigation_drawer_open">Mở menu</string>
     <string name="navigation_drawer_close">Đóng menu</string>
 
-    <string name="app_name">Clinic</string>
-    <string name="web_client_id">319551645967-r2pub0h77cq88eqm8ugb8gvi0gebukc8.apps.googleusercontent.com</string>
+    <!-- Nếu vẫn muốn giữ tên đầy đủ để tham chiếu riêng -->
+    <string name="app_name_full">1150070050_NguyenNgocTuVy_QLPK_DAGK</string>
 
+    <string name="web_client_id">319551645967-r2pub0h77cq88eqm8ugb8gvi0gebukc8.apps.googleusercontent.com</string>
 </resources>

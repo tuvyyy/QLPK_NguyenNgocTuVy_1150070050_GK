@@ -47,15 +47,12 @@
             android:name=".Activities.RegisterActivity"
             android:exported="true" />
 
-        <!-- ForgotPasswordActivity -->
-        <activity
-            android:name=".Activities.ForgotPasswordActivity"
-            android:exported="true" />
-
         <!-- MainActivity -->
         <activity
             android:name=".MainActivity"
             android:exported="true" />
+
+        <activity android:name=".Activities.ForgotResetActivity"/>
 
         <!-- khai báo cho pin rút/ cắm sạc-->
         <activity android:name=".PowerStatusActivity"
