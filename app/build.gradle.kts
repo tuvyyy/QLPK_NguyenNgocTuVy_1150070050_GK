@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.a1150070050_nguyenngoctuvy_qlpk_dagk"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -39,7 +39,7 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation("com.google.android.gms:play-services-auth:21.2.0") // Google Sign-In
-
+    implementation("androidx.security:security-crypto:1.0.0")
     // Test mặc định
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

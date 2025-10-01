@@ -26,7 +26,9 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.R;
 import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.adapters.AppointmentAdapter;
+import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.api.ApiClient;
 import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.model.Appointment;
+import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.security.TokenStore;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -38,7 +40,7 @@ import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.MediaType;
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -46,12 +48,20 @@ import okhttp3.Response;
 
 public class AppointmentsFragment extends Fragment {
 
-    // Đổi IP theo máy backend của bạn
-    private static final String BASE = "http://192.168.1.9:5179";
-    private static final String APPT_URL    = BASE + "/api/Appointments";
-    private static final String DOCTORS_URL = BASE + "/api/Doctors";
-    private static final String PATIENTS_URL= BASE + "/api/Patients";
-    private static final String SERVICES_URL= BASE + "/api/Services";
+    // ===== BASE + endpoints (không sinh "//") =====
+    private static String api(String pathNoLeadingSlash) {
+        String base = ApiClient.BASE_API; // ví dụ: http://192.168.1.7:5179/
+        if (base.endsWith("/")) base = base.substring(0, base.length() - 1);
+        while (pathNoLeadingSlash.startsWith("/")) {
+            pathNoLeadingSlash = pathNoLeadingSlash.substring(1);
+        }
+        return base + "/" + pathNoLeadingSlash;
+    }
+
+    private static final String EP_APPTS    = api("api/Appointments");
+    private static final String EP_DOCTORS  = api("api/Doctors");
+    private static final String EP_PATIENTS = api("api/Patients");
+    private static final String EP_SERVICES = api("api/Services");
 
     private SwipeRefreshLayout swipe;
     private RecyclerView rv;
@@ -63,20 +73,20 @@ public class AppointmentsFragment extends Fragment {
     private AppointmentAdapter adapter;
     private final List<Appointment> data = new ArrayList<>();
 
-    private final OkHttpClient client = new OkHttpClient();
-    private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+    // Dùng OkHttp chung
+    private final OkHttpClient http = ApiClient.get();
 
     // filter state
     private String selectedDateIso = todayIsoDate(); // yyyy-MM-dd
     private Integer selectedDoctorId = null;
 
-    // caches cho dropdown
+    // caches dropdown
     private final List<Integer> doctorIds = new ArrayList<>();
-    private final List<String> doctorNames = new ArrayList<>();
+    private final List<String>  doctorNames = new ArrayList<>();
     private final List<Integer> patientIds = new ArrayList<>();
-    private final List<String> patientNames = new ArrayList<>();
+    private final List<String>  patientNames = new ArrayList<>();
     private final List<Integer> serviceIds = new ArrayList<>();
-    private final List<String> serviceNames = new ArrayList<>();
+    private final List<String>  serviceNames = new ArrayList<>();
 
     @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -102,7 +112,7 @@ public class AppointmentsFragment extends Fragment {
         swipe.setOnRefreshListener(this::loadAppointments);
         btnAdd.setOnClickListener(v12 -> openCreateDialog());
 
-        // nạp bác sĩ cho filter -> rồi load danh sách
+        // nạp bác sĩ cho filter → rồi load danh sách
         loadDoctorsForFilter(this::loadAppointments);
 
         return v;
@@ -111,12 +121,22 @@ public class AppointmentsFragment extends Fragment {
     private void toast(String s){ if(isAdded()) Toast.makeText(getContext(), s, Toast.LENGTH_SHORT).show(); }
     private void runOnUi(Runnable r){ if (isAdded()) requireActivity().runOnUiThread(r); }
 
+    private void withAuth(Request.Builder rb) {
+        try {
+            String token = TokenStore.get(requireContext());
+            if (token != null && !token.isEmpty()) {
+                rb.addHeader("Authorization", "Bearer " + token);
+            }
+        } catch (Throwable ignore) {}
+    }
+
     // ------------ Filter Doctor ------------
     private interface Done { void ok(); }
 
     private void loadDoctorsForFilter(Done done){
-        Request req = new Request.Builder().url(DOCTORS_URL).build();
-        client.newCall(req).enqueue(new Callback() {
+        Request.Builder rb = new Request.Builder().url(EP_DOCTORS);
+        withAuth(rb);
+        http.newCall(rb.build()).enqueue(new Callback() {
             @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 runOnUi(() -> {
                     ArrayList<String> labels = new ArrayList<>();
@@ -129,11 +149,12 @@ public class AppointmentsFragment extends Fragment {
             }
             @Override public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 String body = response.body()!=null?response.body().string():"";
+                response.close();
                 final ArrayList<String> labels = new ArrayList<>();
                 final ArrayList<Integer> ids = new ArrayList<>();
                 labels.add("Tất cả bác sĩ"); ids.add(-1);
                 try{
-                    JSONArray arr = new JSONArray(body);
+                    JSONArray arr = new JSONArray(body); // endpoint này trả array
                     for (int i=0;i<arr.length();i++){
                         JSONObject o = arr.getJSONObject(i);
                         ids.add(o.getInt("id"));
@@ -159,16 +180,20 @@ public class AppointmentsFragment extends Fragment {
         progress.setVisibility(View.VISIBLE);
         swipe.setRefreshing(false);
 
-        String url = APPT_URL + "?date=" + selectedDateIso;
-        if (selectedDoctorId != null) url += "&doctorId=" + selectedDoctorId;
+        HttpUrl.Builder ub = HttpUrl.parse(EP_APPTS).newBuilder()
+                .addQueryParameter("date", selectedDateIso);
+        if (selectedDoctorId != null) ub.addQueryParameter("doctorId", String.valueOf(selectedDoctorId));
 
-        Request req = new Request.Builder().url(url).build();
-        client.newCall(req).enqueue(new Callback() {
+        Request.Builder rb = new Request.Builder().url(ub.build());
+        withAuth(rb);
+
+        http.newCall(rb.build()).enqueue(new Callback() {
             @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 runOnUi(() -> { progress.setVisibility(View.GONE); toast("Không tải được lịch"); });
             }
             @Override public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 String body = response.body()!=null?response.body().string():"";
+                response.close();
                 final ArrayList<Appointment> tmp = new ArrayList<>();
                 try{
                     JSONArray items;
@@ -202,7 +227,6 @@ public class AppointmentsFragment extends Fragment {
     }
 
     // ------------ Dialog tạo lịch (dropdown bắt buộc) ------------
-
     private void openCreateDialog(){
         View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_appointment, null);
         AutoCompleteTextView ddPatient = view.findViewById(R.id.ddPatient);
@@ -211,7 +235,6 @@ public class AppointmentsFragment extends Fragment {
         EditText etDate = view.findViewById(R.id.etDate);
         EditText etTime = view.findViewById(R.id.etTime);
 
-        // ID đã chọn (-1 = chưa chọn)
         final int[] selPatientId = {-1};
         final int[] selDoctorId  = {-1};
         final int[] selServiceId = {-1};
@@ -220,12 +243,10 @@ public class AppointmentsFragment extends Fragment {
         etDate.setOnClickListener(v -> showDatePick(etDate));
         etTime.setOnClickListener(v -> showTimePick(etTime));
 
-        // chạm để xổ danh sách
         ddPatient.setOnClickListener(v -> ddPatient.showDropDown());
         ddDoctor.setOnClickListener(v -> ddDoctor.showDropDown());
         ddService.setOnClickListener(v -> ddService.showDropDown());
 
-        // nạp data + lấy ID đúng khi chọn item
         loadPatients(ddPatient, (pos) -> selPatientId[0] = patientIds.get(pos));
         loadDoctors (ddDoctor , (pos) -> selDoctorId [0] = doctorIds .get(pos));
         loadServices(ddService, (pos) -> selServiceId[0] = serviceIds.get(pos));
@@ -265,14 +286,17 @@ public class AppointmentsFragment extends Fragment {
             js.put("appointmentDate", iso);
             js.put("status", "Scheduled");
 
-            RequestBody body = RequestBody.create(js.toString(), JSON);
-            Request req = new Request.Builder().url(APPT_URL).post(body).build();
-            client.newCall(req).enqueue(new Callback() {
+            RequestBody body = RequestBody.create(js.toString(), ApiClient.JSON);
+            Request.Builder rb = new Request.Builder().url(EP_APPTS).post(body);
+            withAuth(rb);
+
+            http.newCall(rb.build()).enqueue(new Callback() {
                 @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     runOnUi(() -> toast("Lỗi tạo lịch"));
                 }
                 @Override public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                     String b = response.body()!=null?response.body().string():"";
+                    response.close();
                     runOnUi(() -> {
                         if (response.isSuccessful()) { toast("Đã tạo lịch"); loadAppointments(); }
                         else {
@@ -293,15 +317,23 @@ public class AppointmentsFragment extends Fragment {
                 .setTitle("Đổi trạng thái")
                 .setItems(statuses, (dialog, which) -> {
                     String value = statuses[which];
-                    Request req = new Request.Builder()
-                            .url(APPT_URL + "/" + appt.getId() + "/status?value=" + value)
-                            .put(RequestBody.create(new byte[0], null))
+
+                    HttpUrl url = HttpUrl.parse(EP_APPTS + "/" + appt.getId() + "/status")
+                            .newBuilder()
+                            .addQueryParameter("value", value)
                             .build();
-                    client.newCall(req).enqueue(new Callback() {
+
+                    Request.Builder rb = new Request.Builder()
+                            .url(url)
+                            .put(RequestBody.create(new byte[0], null));
+                    withAuth(rb);
+
+                    http.newCall(rb.build()).enqueue(new Callback() {
                         @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
                             runOnUi(() -> toast("Lỗi cập nhật"));
                         }
                         @Override public void onResponse(@NonNull Call call, @NonNull Response response) {
+                            response.close();
                             runOnUi(() -> {
                                 if (response.isSuccessful()) { toast("Đã cập nhật: " + value); loadAppointments(); }
                                 else toast("Cập nhật lỗi");
@@ -317,12 +349,14 @@ public class AppointmentsFragment extends Fragment {
         new AlertDialog.Builder(getContext())
                 .setMessage("Huỷ lịch này?")
                 .setPositiveButton("Huỷ", (d,w)->{
-                    Request req = new Request.Builder().url(APPT_URL + "/" + id).delete().build();
-                    client.newCall(req).enqueue(new Callback() {
+                    Request.Builder rb = new Request.Builder().url(EP_APPTS + "/" + id).delete();
+                    withAuth(rb);
+                    http.newCall(rb.build()).enqueue(new Callback() {
                         @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
                             runOnUi(() -> toast("Lỗi huỷ"));
                         }
                         @Override public void onResponse(@NonNull Call call, @NonNull Response response) {
+                            response.close();
                             runOnUi(() -> {
                                 if (response.isSuccessful()){ toast("Đã huỷ"); loadAppointments(); }
                                 else toast("Huỷ lỗi");
@@ -338,14 +372,16 @@ public class AppointmentsFragment extends Fragment {
     private interface OnPickPos { void pick(int position); }
 
     private void loadPatients(AutoCompleteTextView dd, OnPickPos cb){
-        Request req = new Request.Builder().url(PATIENTS_URL).build();
-        client.newCall(req).enqueue(new Callback() {
+        Request.Builder rb = new Request.Builder().url(EP_PATIENTS);
+        withAuth(rb);
+        http.newCall(rb.build()).enqueue(new Callback() {
             @Override public void onFailure(@NonNull Call call, @NonNull IOException e) { }
             @Override public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 String body = response.body()!=null?response.body().string():"";
+                response.close();
                 patientIds.clear(); patientNames.clear();
                 try{
-                    JSONArray arr = new JSONArray(body);
+                    JSONArray arr = new JSONArray(body); // endpoint này trả array
                     for (int i=0;i<arr.length();i++){
                         JSONObject o = arr.getJSONObject(i);
                         patientIds.add(o.getInt("id"));
@@ -365,11 +401,13 @@ public class AppointmentsFragment extends Fragment {
         });
     }
     private void loadDoctors(AutoCompleteTextView dd, OnPickPos cb){
-        Request req = new Request.Builder().url(DOCTORS_URL).build();
-        client.newCall(req).enqueue(new Callback() {
+        Request.Builder rb = new Request.Builder().url(EP_DOCTORS);
+        withAuth(rb);
+        http.newCall(rb.build()).enqueue(new Callback() {
             @Override public void onFailure(@NonNull Call call, @NonNull IOException e) { }
             @Override public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 String body = response.body()!=null?response.body().string():"";
+                response.close();
                 doctorIds.clear(); doctorNames.clear();
                 try{
                     JSONArray arr = new JSONArray(body);
@@ -392,11 +430,13 @@ public class AppointmentsFragment extends Fragment {
         });
     }
     private void loadServices(AutoCompleteTextView dd, OnPickPos cb){
-        Request req = new Request.Builder().url(SERVICES_URL).build();
-        client.newCall(req).enqueue(new Callback() {
+        Request.Builder rb = new Request.Builder().url(EP_SERVICES);
+        withAuth(rb);
+        http.newCall(rb.build()).enqueue(new Callback() {
             @Override public void onFailure(@NonNull Call call, @NonNull IOException e) { }
             @Override public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 String body = response.body()!=null?response.body().string():"";
+                response.close();
                 serviceIds.clear(); serviceNames.clear();
                 try{
                     JSONArray arr = new JSONArray(body);

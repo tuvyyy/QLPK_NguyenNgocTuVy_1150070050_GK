@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Chỉ cho HTTPS tới domain của bạn -->
+    <domain-config cleartextTrafficPermitted="false">
+        <!-- Thay bằng host HTTPS thực tế, vd: abc.ngrok-free.app -->
+        <domain includeSubdomains="true">your-https-host.example</domain>
+    </domain-config>
+</network-security-config>

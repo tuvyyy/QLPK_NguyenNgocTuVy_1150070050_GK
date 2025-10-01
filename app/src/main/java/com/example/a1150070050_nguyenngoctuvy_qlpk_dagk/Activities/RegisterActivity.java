@@ -3,6 +3,7 @@ package com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.Activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -11,14 +12,15 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.R;
+import com.example.a1150070050_nguyenngoctuvy_qlpk_dagk.api.ApiClient;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -30,106 +32,101 @@ public class RegisterActivity extends AppCompatActivity {
     private Button btnRegister;
     private TextView tvLogin;
 
-    private OkHttpClient client;
+    // Dùng OkHttp client chung (đã gắn AllowedHostInterceptor)
+    private final OkHttpClient http = ApiClient.get();
 
-    private final String BASE_URL = "http://192.168.1.6:5179 /api/Users/register";
-    private final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+    // Join endpoint an toàn (không tạo "//")
+    private static String api(String pathNoLeadingSlash) {
+        String base = ApiClient.BASE_API;                  // vd: http://192.168.1.7:5179/
+        if (base.endsWith("/")) base = base.substring(0, base.length() - 1);
+        while (pathNoLeadingSlash.startsWith("/")) {
+            pathNoLeadingSlash = pathNoLeadingSlash.substring(1);
+        }
+        return base + "/" + pathNoLeadingSlash;            // -> http://.../api/Users/register
+    }
+
+    private static final String EP_REGISTER = api("api/Users/register");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        // Ánh xạ view
-        etUsername = findViewById(R.id.etUsername);
-        etPassword = findViewById(R.id.etPassword);
+        etUsername        = findViewById(R.id.etUsername);
+        etPassword        = findViewById(R.id.etPassword);
         etConfirmPassword = findViewById(R.id.etConfirmPassword);
-        etEmail = findViewById(R.id.etEmail);
-        btnRegister = findViewById(R.id.btnRegister);
-        tvLogin = findViewById(R.id.tvLogin);
+        etEmail           = findViewById(R.id.etEmail);
+        btnRegister       = findViewById(R.id.btnRegister);
+        tvLogin           = findViewById(R.id.tvLogin);
 
-        client = new OkHttpClient();
-
-        // Xử lý đăng ký
         btnRegister.setOnClickListener(v -> registerUser());
-
-        // Chuyển sang Login
         tvLogin.setOnClickListener(v -> {
-            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
             finish();
         });
     }
 
     private void registerUser() {
-        String username = etUsername.getText().toString().trim();
-        String password = etPassword.getText().toString().trim();
-        String confirmPassword = etConfirmPassword.getText().toString().trim();
-        String email = etEmail.getText().toString().trim();
+        String username = text(etUsername);
+        String password = text(etPassword);
+        String confirm  = text(etConfirmPassword);
+        String email    = text(etEmail);
 
-        // Validate
-        if (TextUtils.isEmpty(username)) {
-            etUsername.setError("Vui lòng nhập tên đăng nhập!");
-            return;
+        // ===== Validate cơ bản =====
+        if (TextUtils.isEmpty(username)) { etUsername.setError("Vui lòng nhập tên đăng nhập!"); return; }
+        if (TextUtils.isEmpty(email) || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            etEmail.setError("Email không hợp lệ!"); return;
         }
-        if (TextUtils.isEmpty(email)) {
-            etEmail.setError("Vui lòng nhập email!");
-            return;
-        }
-        if (TextUtils.isEmpty(password)) {
-            etPassword.setError("Vui lòng nhập mật khẩu!");
-            return;
-        }
-        if (!password.equals(confirmPassword)) {
-            etConfirmPassword.setError("Mật khẩu không khớp!");
-            return;
-        }
+        if (TextUtils.isEmpty(password)) { etPassword.setError("Vui lòng nhập mật khẩu!"); return; }
+        if (!password.equals(confirm)) { etConfirmPassword.setError("Mật khẩu không khớp!"); return; }
 
+        // ===== Body JSON theo backend UsersController.Register =====
+        JSONObject json = new JSONObject();
         try {
-            // Tạo JSON body đúng với backend
-            JSONObject json = new JSONObject();
             json.put("username", username);
-            json.put("passwordHash", password); // backend yêu cầu PasswordHash
+            // Server của bạn đang nhận field "passwordHash" (theo UsersController)
+            // -> hiện gửi plaintext để server tự hash, hoặc bạn đổi server nhận "password".
+            json.put("passwordHash", password);
             json.put("email", email);
-            json.put("role", "user"); // mặc định user
+            json.put("role", "user");
+        } catch (JSONException ignored) {}
 
-            RequestBody body = RequestBody.create(json.toString(), JSON);
+        Request req = new Request.Builder()
+                .url(EP_REGISTER)
+                .post(RequestBody.create(json.toString(), ApiClient.JSON))
+                .build();
 
-            Request request = new Request.Builder()
-                    .url(BASE_URL)   // POST /api/Users/register
-                    .post(body)
-                    .build();
+        http.newCall(req).enqueue(new Callback() {
+            @Override public void onFailure(Call call, IOException e) {
+                runOnUiThread(() ->
+                        Toast.makeText(RegisterActivity.this, "Không thể kết nối server: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
+            }
 
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    runOnUiThread(() ->
-                            Toast.makeText(RegisterActivity.this, "Không thể kết nối server!", Toast.LENGTH_SHORT).show()
-                    );
-                }
+            @Override public void onResponse(Call call, Response res) throws IOException {
+                String body = res.body() != null ? res.body().string() : "";
+                boolean ok = res.isSuccessful();
+                res.close();
 
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    String resp = response.body() != null ? response.body().string() : "";
-                    if (response.isSuccessful()) {
-                        runOnUiThread(() -> {
-                            Toast.makeText(RegisterActivity.this, "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
-                            // Chuyển về login
-                            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                            startActivity(intent);
-                            finish();
-                        });
+                runOnUiThread(() -> {
+                    if (ok) {
+                        Toast.makeText(RegisterActivity.this, "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                        finish();
                     } else {
-                        runOnUiThread(() ->
-                                Toast.makeText(RegisterActivity.this, "Đăng ký thất bại! " + resp, Toast.LENGTH_SHORT).show()
-                        );
+                        // Thông điệp thân thiện cho một số lỗi thường gặp
+                        String msg;
+                        if (res.code() == 409) msg = "Tên đăng nhập đã tồn tại!";
+                        else if (res.code() == 400) msg = "Dữ liệu không hợp lệ!";
+                        else msg = "Đăng ký thất bại (" + res.code() + "): " + body;
+                        Toast.makeText(RegisterActivity.this, msg, Toast.LENGTH_SHORT).show();
                     }
-                }
-            });
+                });
+            }
+        });
+    }
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Lỗi xử lý dữ liệu!", Toast.LENGTH_SHORT).show();
-        }
+    private static String text(EditText et) {
+        return et.getText() == null ? "" : et.getText().toString().trim();
     }
 }

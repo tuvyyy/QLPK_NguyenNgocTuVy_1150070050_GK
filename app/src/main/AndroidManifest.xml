@@ -1,72 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.a1150070050_nguyenngoctuvy_qlpk_dagk">
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Quyền Internet -->
+    <!-- Internet -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!--    phân quyền cho sms-->
-    <uses-permission android:name="android.permission.RECEIVE_SMS"/>
-    <uses-permission android:name="android.permission.SEND_SMS"/>
-    <uses-permission android:name="android.permission.READ_SMS"/> <!-- có thể bỏ nếu không đọc hộp thư -->
-    <uses-permission android:name="android.permission.CALL_PHONE"/>
+    <!-- SMS / CALL (không khai trùng) -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
 
-    <uses-permission android:name="android.permission.RECEIVE_SMS"/>
+    <!-- Thiết bị không có sóng vẫn cài được -->
     <uses-feature
         android:name="android.hardware.telephony"
         android:required="false" />
 
-
     <application
-        android:allowBackup="true"
-        android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme._1150070050_NguyenNgocTuVy_QLPK_DAGK">
+        android:theme="@style/Theme._1150070050_NguyenNgocTuVy_QLPK_DAGK"
+        android:usesCleartextTraffic="true"
+        android:allowBackup="false"
+        tools:replace="android:allowBackup">
 
+    <!-- Login là entry point -->
+    <activity
+        android:name=".Activities.LoginActivity"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity>
 
-        <activity
-            android:name=".SmsDemoActivity"
-            android:exported="true"
-            android:label="SMS Demo"/>
+    <!-- Đăng ký -->
+    <activity
+        android:name=".Activities.RegisterActivity"
+        android:exported="true" />
 
-        <!-- LoginActivity: entry point -->
-        <activity
-            android:name=".Activities.LoginActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+    <!-- Quên/đổi mật khẩu -->
+    <activity
+        android:name=".Activities.ForgotResetActivity"
+        android:exported="true" />
 
-        <!-- RegisterActivity -->
-        <activity
-            android:name=".Activities.RegisterActivity"
-            android:exported="true" />
+    <!-- Main -->
+    <activity
+        android:name=".MainActivity"
+        android:exported="true" />
 
-        <!-- MainActivity -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="true" />
+    <!-- Pin rút/cắm sạc -->
+    <activity
+        android:name=".PowerStatusActivity"
+        android:exported="true"
+        android:label="Power Status" />
+</application>
 
-        <activity android:name=".Activities.ForgotResetActivity"/>
-
-        <!-- khai báo cho pin rút/ cắm sạc-->
-        <activity android:name=".PowerStatusActivity"
-            android:exported="true"
-            android:label="Power Status"/>
-
-
-        <!--khai báo sms-->
-        <activity android:name=".emergency.EmergencyActivity" android:exported="true" />
-        <receiver android:name=".emergency.SmsReceiver" android:exported="true">
-            <intent-filter>
-                <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
-            </intent-filter>
-        </receiver>
-    </application>
-
-</manifest>
+    </manifest>
