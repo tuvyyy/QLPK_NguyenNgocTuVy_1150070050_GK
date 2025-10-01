@@ -235,7 +235,13 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void goMain(int id, String username, String role, String email) {
-        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        // role có thể là "admin" / "user" / null
+        Intent intent;
+        if (role != null && role.equalsIgnoreCase("admin")) {
+            intent = new Intent(LoginActivity.this, AdminActivity.class);
+        } else {
+            intent = new Intent(LoginActivity.this, MainActivity.class);
+        }
         intent.putExtra("id", id);
         intent.putExtra("username", username);
         intent.putExtra("role", role);

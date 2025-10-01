@@ -37,7 +37,10 @@
         </intent-filter>
     </activity>
 
-    <!-- Đăng ký -->
+        <activity android:name=".Activities.AdminActivity" android:exported="true"/>
+
+
+        <!-- Đăng ký -->
     <activity
         android:name=".Activities.RegisterActivity"
         android:exported="true" />
@@ -58,5 +61,4 @@
         android:exported="true"
         android:label="Power Status" />
 </application>
-
     </manifest>
